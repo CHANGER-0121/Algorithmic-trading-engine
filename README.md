@@ -1,146 +1,56 @@
 # Algorithmic Trading Engine
 
-A multi-strategy autonomous trading system built in TypeScript that uses technical analysis, market regime detection, and adaptive risk management to identify and execute trades across equities and crypto markets.
+A personal project I built to explore systematic trading — specifically how to combine multiple technical strategies and only act when they agree. The core idea is that any single indicator is noisy, but if momentum, mean reversion, and relative strength all point the same direction at once, that's worth paying attention to.
 
-## Architecture
+Written in TypeScript with strict types throughout. There's also a Python backtester in `examples/` for running simulations against synthetic price data.
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    SCHEDULER (Orchestrator)                   │
-│  Manages scan timing, position lifecycle, and risk limits    │
-├─────────────────────────────────────────────────────────────┤
-│                                                              │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────────┐  │
-│  │  Signal       │  │  Position    │  │  Risk            │  │
-│  │  Generator    │  │  Manager     │  │  Engine          │  │
-│  │              │  │              │  │                  │  │
-│  │ • Momentum   │  │ • Entry      │  │ • Position Size  │  │
-│  │ • Mean Rev   │  │ • Pyramiding │  │ • Correlation    │  │
-│  │ • Rel Str    │  │ • Trailing   │  │ • Circuit Break  │  │
-│  │ • Regime     │  │ • Partial TP │  │ • Overnight Trim │  │
-│  └──────────────┘  └──────────────┘  └──────────────────┘  │
-│                                                              │
-├─────────────────────────────────────────────────────────────┤
-│                    BROKER INTERFACE                           │
-│  Market data ingestion, order routing, account state         │
-└─────────────────────────────────────────────────────────────┘
-```
+---
 
-## Features
+## How it works
 
-### Multi-Strategy Signal Generation
+Three strategies run independently on each scan:
 
-The engine runs three independent strategies in parallel and selects the highest-confidence signal:
+- **Momentum** — looks at EMA alignment, MACD crossovers, RSI zone, and ADX trend strength
+- **Mean Reversion** — catches oversold bounces using Bollinger Band extremes and RSI extremes
+- **Relative Strength** — compares the stock's 20-day return against SPY to find outperformers
 
-- **Momentum Strategy** — MACD crossovers, RSI momentum zones, EMA trend alignment, ADX strength
-- **Mean Reversion** — Bollinger Band extremes, RSI oversold/overbought bounces, capitulation volume
-- **Relative Strength** — Outperformance vs SPY benchmark, percentile ranking
+A **conviction filter** then checks whether at least 2 of the 3 strategies agree on direction. If they don't, it stays flat. This was the biggest improvement to signal quality — cutting the number of trades but improving the ones that do fire.
 
-A **Conviction Filter** requires 2+ strategies to agree before executing, reducing false signals.
+Position sizing is ATR-based (scales down automatically in volatile conditions) and there's a circuit breaker that stops new buys if the day is down more than 2%.
 
-### Adaptive Risk Management
+---
 
-- **Volatility-based position sizing** — Uses ATR to scale position size inversely with volatility
-- **Correlation scoring** — Reduces exposure when positions are correlated (80%/60%/40% progressive reduction)
-- **Dynamic overnight exposure** — Adjusts limits based on market regime (85% uptrend → 40% strong downtrend)
-- **Circuit breaker** — Halts all new buys if daily P&L drops below -2%
-- **Strategy diversity** — Max 3 positions from the same strategy type
+## Project structure
 
-### Intelligent Position Management
-
-- **Pyramiding** — Adds 25% to winners up 3%+ with confirmed momentum (max 2 adds)
-- **Trailing stops** — Dynamic stop-loss that follows price using ATR multiples
-- **Partial profit taking** — Sells 50% at intermediate targets, lets runners ride
-- **Exit quality scoring** — Delays profit-taking in strong uptrends
-
-### Market Regime Detection
-
-```typescript
-type MarketRegime = "strong_uptrend" | "uptrend" | "sideways" | "downtrend" | "strong_downtrend";
-```
-
-Uses ADX, moving average slopes, EMA alignment, and breadth indicators to classify the current market environment and adjust strategy parameters accordingly.
-
-## Tech Stack
-
-| Layer | Technology |
-|-------|-----------|
-| Language | TypeScript 5.6 (strict mode) |
-| Runtime | Node.js 22 (ESM) |
-| Testing | Vitest 2.1 |
-| Type Checking | tsc --noEmit |
-| Multi-language | Python 3.11 (backtesting examples) |
-
-## Project Structure
-
-```
 src/
-├── types.ts              # Core type definitions (Signal, Position, Regime, Config)
-├── indicators.ts         # Technical indicators (EMA, RSI, MACD, ATR, ADX, Bollinger)
-├── tradingEngine.ts      # Multi-strategy signal generation & conviction filter
-├── regimeDetector.ts     # Market regime classification & parameter tuning
-├── riskManager.ts        # Position sizing, correlation, circuit breaker, overnight trim
-└── scheduler.ts          # Scan orchestration, gap-up scanner, position lifecycle
-
+├── types.ts              # All shared types — Signal, Position, Regime, Config
+├── indicators.ts         # EMA, RSI, MACD, ATR, ADX, Bollinger Bands
+├── tradingEngine.ts      # The three strategies + conviction filter
+├── regimeDetector.ts     # Classifies market as uptrend/sideways/downtrend/etc.
+├── riskManager.ts        # Position sizing, correlation checks, circuit breaker
+└── scheduler.ts          # Orchestrates scans and manages open positions
 tests/
-├── indicators.test.ts    # 26 tests — indicator accuracy, edge cases, boundaries
-├── riskManager.test.ts   # 35 tests — position sizing, correlation, circuit breaker
-└── tradingEngine.test.ts # 17 tests — signal generation, conviction filter, integration
-
+├── indicators.test.ts    # 26 tests
+├── riskManager.test.ts   # 35 tests
+└── tradingEngine.test.ts # 17 tests
 docs/
-└── CODE_REVIEW.md        # AI code quality analysis (bug identification, scoring)
-
+└── CODE_REVIEW.md        # Notes on bugs found and fixed during development
 examples/
-└── backtest.py           # Python momentum backtester with synthetic data generator
-```
+└── backtest.py           # Python backtester with configurable synthetic data
 
-## Running Tests
+---
+
+## Running it
 
 ```bash
-# Install dependencies
 npm install
-
-# Run all tests (78 tests across 3 files)
 npm test
 
-# Run with coverage report
-npm run test:coverage
-
-# Run specific test file
-npx vitest run tests/indicators.test.ts
-
-# Type check without emitting
-npm run typecheck
-```
-
-## Running the Python Backtester
-
-```bash
-# Default parameters (252 bars, $100k equity)
+Python backtester:
 python3 examples/backtest.py
+python3 examples/backtest.py --bars 500 --drift 0.001
 
-# Custom parameters
-python3 examples/backtest.py --bars 500 --equity 50000 --threshold 70 --drift 0.001
-
-# Low volatility scenario
-python3 examples/backtest.py --volatility 0.01 --drift 0.0008
-```
-
-## Key Design Decisions
-
-1. **Strategy independence** — Each strategy generates signals independently, preventing cascade failures
-2. **Confidence scoring** — Every signal includes a 0-100 confidence score, enabling threshold-based filtering
-3. **Pure functions** — Indicator calculations and signal generation are pure (no side effects, deterministic)
-4. **Fail-safe defaults** — All error paths default to HOLD (no action), never to BUY/SELL
-5. **Progressive risk reduction** — Correlation, regime, and diversity checks compound to prevent over-concentration
-
-## Code Quality Highlights
-
-- **Zero `any` types** — Full strict TypeScript with explicit interfaces for all data structures
-- **78 unit tests** — Property-based boundary testing, edge cases, integration tests
-- **Documented edge cases** — Division by zero guards, NaN propagation prevention, empty input handling
-- **AI code review** — See `docs/CODE_REVIEW.md` for systematic quality analysis methodology
-
-## License
-
+Stack
+TypeScript 5.6 (strict), Node.js 22, Vitest 2.1
+License
 MIT
