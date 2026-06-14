@@ -41,7 +41,6 @@ docs/
 examples/
 └── backtest.py           # Python backtester with configurable synthetic data
 ```
-
 ---
 
 ## Running it
@@ -50,13 +49,4 @@ examples/
 npm install
 npm test
 
-Python backtester:
-python3 examples/backtest.py
-python3 examples/backtest.py --bars 500 --drift 0.001
-
-Stack
-TypeScript 5.6 (strict), Node.js 22, Vitest 2.1
-
-Liscence
-MIT
 
