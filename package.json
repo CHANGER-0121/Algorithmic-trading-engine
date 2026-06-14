@@ -1,0 +1,28 @@
+{
+  "name": "algorithmic-trading-engine",
+  "version": "1.0.0",
+  "description": "A multi-strategy algorithmic trading engine with volatility-based position sizing, market regime detection, and comprehensive risk management.",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "lint": "tsc --noEmit",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [
+    "algorithmic-trading",
+    "quantitative-finance",
+    "technical-analysis",
+    "risk-management",
+    "typescript"
+  ],
+  "author": "CHANGER-0121",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.6.0",
+    "vitest": "^2.1.0"
+  }
+}
