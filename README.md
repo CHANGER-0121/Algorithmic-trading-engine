@@ -1,4 +1,5 @@
-lgorithmic Trading Engine
+Algorithmic Trading Engine
+---
 A personal project I built to explore systematic trading — specifically how to combine multiple technical strategies and only act when they agree. The core idea is that any single indicator is noisy, but if momentum, mean reversion, and relative strength all point the same direction at once, that's worth paying attention to.
 Written in TypeScript with strict types throughout. There's also a Python backtester in examples/ for running simulations against synthetic price data.
 ---
