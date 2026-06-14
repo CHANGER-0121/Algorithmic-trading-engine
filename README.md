@@ -19,9 +19,9 @@ A **conviction filter** then checks whether at least 2 of the 3 strategies agree
 Position sizing is ATR-based (scales down automatically in volatile conditions) and there's a circuit breaker that stops new buys if the day is down more than 2%.
 
 ---
-
 ## Project structure
 
+```
 src/
 ├── types.ts              # All shared types — Signal, Position, Regime, Config
 ├── indicators.ts         # EMA, RSI, MACD, ATR, ADX, Bollinger Bands
@@ -29,14 +29,18 @@ src/
 ├── regimeDetector.ts     # Classifies market as uptrend/sideways/downtrend/etc.
 ├── riskManager.ts        # Position sizing, correlation checks, circuit breaker
 └── scheduler.ts          # Orchestrates scans and manages open positions
+
 tests/
 ├── indicators.test.ts    # 26 tests
 ├── riskManager.test.ts   # 35 tests
 └── tradingEngine.test.ts # 17 tests
+
 docs/
 └── CODE_REVIEW.md        # Notes on bugs found and fixed during development
+
 examples/
 └── backtest.py           # Python backtester with configurable synthetic data
+```
 
 ---
 
