@@ -7,8 +7,8 @@ How it works
 Three strategies run independently on each scan:
 - Momentum — looks at EMA alignment, MACD crossovers, RSI zone, and ADX trend strength
 - Mean Reversion — catches oversold bounces using Bollinger Band extremes and RSI extremes
-- Relative Strength — compares the stock's 20-day return against SPY to find outperformers
-A conviction filter then checks whether at least 2 of the 3 strategies agree on direction. If they don't, it stays flat. This was the biggest improvement to signal quality — cutting the number of trades but improving the ones that do fire.
+- Relative Strength — compares the stock's 20-day return against SPY to find outperformers,
+- A conviction filter then checks whether at least 2 of the 3 strategies agree on direction. If they don't, it stays flat. This was the biggest improvement to signal quality — cutting the number of trades but improving the ones that do fire.
 Position sizing is ATR-based (scales down automatically in volatile conditions ) and there's a circuit breaker that stops new buys if the day is down more than 2%.
 ---
 Project structure
